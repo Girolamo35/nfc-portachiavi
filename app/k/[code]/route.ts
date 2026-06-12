@@ -12,7 +12,17 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('keychains')
-    .select('code, target_url, active')
+    .select(`
+      id,
+      code,
+      active,
+      clients (
+        id,
+        name,
+        default_url,
+        active
+      )
+    `)
     .eq('code', codicePulito)
     .maybeSingle();
 
@@ -24,17 +34,33 @@ export async function GET(
   }
 
   if (!data) {
-    console.log('Codice non trovato:', codicePulito);
     return new NextResponse('Codice non trovato: ' + codicePulito, {
       status: 404,
     });
   }
 
-  if (!data.active) {
+  const record = data as any;
+  const cliente = Array.isArray(record.clients)
+    ? record.clients[0]
+    : record.clients;
+
+  if (!record.active) {
     return new NextResponse('Portachiavi disattivato', {
       status: 404,
     });
   }
 
-  return NextResponse.redirect(data.target_url);
+  if (!cliente || !cliente.active) {
+    return new NextResponse('Cliente disattivato', {
+      status: 404,
+    });
+  }
+
+  if (!cliente.default_url) {
+    return new NextResponse('Link cliente non configurato', {
+      status: 404,
+    });
+  }
+
+  return NextResponse.redirect(cliente.default_url);
 }

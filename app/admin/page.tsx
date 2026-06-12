@@ -1,5 +1,8 @@
 import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { revalidatePath } from 'next/cache';
+import CopyButton from '@/app/components/CopyButton';
+
+const BASE_URL = 'https://nfc-portachiavi.vercel.app';
 
 function pulisciPrefisso(valore: string) {
   return valore
@@ -405,45 +408,57 @@ export default async function AdminPage() {
             <th>Codice NFC</th>
             <th>Ditta / Cliente</th>
             <th>Link ereditato dalla ditta</th>
+            <th>Link da scrivere nel tag NFC</th>
             <th>Stato portachiavi</th>
             <th>Azioni</th>
           </tr>
         </thead>
 
         <tbody>
-          {keychains?.map((k: any) => (
-            <tr key={k.id}>
-              <td>{k.code}</td>
-              <td>{k.clients?.name || '-'}</td>
-              <td>{k.clients?.default_url || '-'}</td>
+          {keychains?.map((k: any) => {
+            const linkNfc = `${BASE_URL}/k/${k.code}`;
 
-              <td>
-                {k.active ? (
-                  <strong style={{ color: 'green' }}>ATTIVO</strong>
-                ) : (
-                  <strong style={{ color: 'red' }}>DISATTIVATO</strong>
-                )}
-              </td>
+            return (
+              <tr key={k.id}>
+                <td>{k.code}</td>
+                <td>{k.clients?.name || '-'}</td>
+                <td>{k.clients?.default_url || '-'}</td>
 
-              <td>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                  <form action={activateKeychain}>
-                    <input type="hidden" name="id" value={k.id} />
-                    <button type="submit">Attiva</button>
-                  </form>
+                <td>
+                  <div style={{ marginBottom: 8 }}>
+                    <code>{linkNfc}</code>
+                  </div>
+                  <CopyButton text={linkNfc} />
+                </td>
 
-                  <form action={deactivateKeychain}>
-                    <input type="hidden" name="id" value={k.id} />
-                    <button type="submit">Disattiva</button>
-                  </form>
-                </div>
+                <td>
+                  {k.active ? (
+                    <strong style={{ color: 'green' }}>ATTIVO</strong>
+                  ) : (
+                    <strong style={{ color: 'red' }}>DISATTIVATO</strong>
+                  )}
+                </td>
 
-                <a href={`/k/${k.code}`} target="_blank">
-                  Prova
-                </a>
-              </td>
-            </tr>
-          ))}
+                <td>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <form action={activateKeychain}>
+                      <input type="hidden" name="id" value={k.id} />
+                      <button type="submit">Attiva</button>
+                    </form>
+
+                    <form action={deactivateKeychain}>
+                      <input type="hidden" name="id" value={k.id} />
+                      <button type="submit">Disattiva</button>
+                    </form>
+                  </div>
+
+                  <a href={`/k/${k.code}`} target="_blank">
+                    Prova
+                  </a>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </main>

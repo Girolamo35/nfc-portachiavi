@@ -78,6 +78,25 @@ async function deactivateClient(formData: FormData) {
   revalidatePath('/admin');
 }
 
+async function deleteClient(formData: FormData) {
+  'use server';
+
+  const id = formData.get('id') as string;
+  const supabase = getSupabaseAdmin();
+
+  await supabase
+    .from('keychains')
+    .delete()
+    .eq('client_id', id);
+
+  await supabase
+    .from('clients')
+    .delete()
+    .eq('id', id);
+
+  revalidatePath('/admin');
+}
+
 async function generateKeychainsForClient(formData: FormData) {
   'use server';
 
@@ -153,7 +172,6 @@ async function deleteAllKeychainsForClient(formData: FormData) {
   'use server';
 
   const client_id = formData.get('client_id') as string;
-
   const supabase = getSupabaseAdmin();
 
   await supabase
@@ -258,7 +276,7 @@ export default async function AdminPage() {
             <th>Genera portachiavi</th>
             <th>Cancella portachiavi</th>
             <th>Stato</th>
-            <th>Azioni</th>
+            <th>Azioni ditta</th>
           </tr>
         </thead>
 
@@ -341,7 +359,7 @@ export default async function AdminPage() {
                   <input type="hidden" name="client_id" value={c.id} />
 
                   <button type="submit" style={{ background: '#dc2626', color: 'white' }}>
-                    Cancella tutti
+                    Cancella tutti i portachiavi
                   </button>
                 </form>
               </td>
@@ -355,7 +373,7 @@ export default async function AdminPage() {
               </td>
 
               <td>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'grid', gap: 8 }}>
                   <form action={activateClient}>
                     <input type="hidden" name="id" value={c.id} />
                     <button type="submit">Attiva ditta</button>
@@ -364,6 +382,13 @@ export default async function AdminPage() {
                   <form action={deactivateClient}>
                     <input type="hidden" name="id" value={c.id} />
                     <button type="submit">Disattiva ditta</button>
+                  </form>
+
+                  <form action={deleteClient}>
+                    <input type="hidden" name="id" value={c.id} />
+                    <button type="submit" style={{ background: '#991b1b', color: 'white' }}>
+                      Cancella ditta
+                    </button>
                   </form>
                 </div>
               </td>
